@@ -1,0 +1,538 @@
+<?php
+namespace Datafase;
+
+import(__File__, "..", "Datafase.php");
+import(__File__, "", "Field.php");
+
+use \Datafase\MySql\Field;
+
+class MySql extends \Datafase
+{
+   //NOTE Constants
+      const MySqlEnum_AutoCreateTable = 1;
+      const MySqlEnum_AutoAddField = 2;
+      const MySqlEnum_AutoRemoveField = 4;
+      const MySqlEnum_AutoChangeField = 8;
+
+   //NOTE Private Variables
+      /**
+       * @var \mysqli
+       */
+      private $db;
+
+      /**
+       * @var boolean
+       */
+      private $auto_MySqlEnum;
+
+   //NOTE Private Functions
+      /**
+       *
+       */
+      protected function reconnect()
+      {
+            $this->db = new \mysqli($this->host, $this->username, $this->password, "", $this->port);
+
+            if ($this->dbName) {
+                  if (!$this->db->select_db($this->dbName) && ($this->autoCreate === true)) {
+                        $this->createDatabase($this->dbName);
+                  }
+            }
+      }
+
+      /**
+       * @param \mysqli_result $cursor
+       *
+       * @return array
+       */
+      private function convertCursorToArray($cursor)
+      {
+            $result = [];
+
+            if ($cursor->num_rows > 0) {
+                  $fields = $cursor->fetch_fields();
+
+                  while ($row = $cursor->fetch_array()) {
+                        $item = [];
+                        foreach ($fields as $field) {
+                              $item[$field->name] = $row[$field->name];
+                        }
+
+                        array_push($result, $item);
+                  }
+            }
+
+            return $result;
+      }
+
+      /**
+       * @param string $table
+       * @param array $conditions
+       * @param array $sort
+       * @param boolean $distinct
+       * @param array $showfields
+       *
+       * @return array
+       */
+      private function selectQuery($table, array $conditions, array $sort, $distinct, array $showfields)
+      {
+            /** @var \mysql_result $result */
+            $conditionString = "";
+            $sortString = "";
+            $query = "SELECT";
+            $selectedFields = "";
+            if ($distinct) {
+                  $query .= " DISTINCT ";
+                  if (count($showfields) > 0) {
+                        foreach ($showfields as $fieldName) {
+                              if ($selectedFields != "") {
+                                    $selectedFields .= ", ";
+                              }
+                              $selectedFields .= $fieldName;
+                        }
+                  }
+            }
+
+            if ($selectedFields == "") {
+                  $selectedFields = "*";
+            }
+
+            $query .= " $selectedFields FROM $table";
+
+            if (count($conditions) > 0) {
+                  $query .= " WHERE";
+
+                  foreach ($conditions as $field => $value) {
+                        if ($conditionString != "") {
+                              $conditionString .= " AND";
+                        }
+                        if (gettype($value) == "string") {
+                              $text = "'$value'";
+                        } else {
+                              $text = $value;
+                        }
+                        $conditionString .= " $field = $text";
+                  }
+            }
+
+            $query .= $conditionString;
+
+            if (count($sort) > 0) {
+                  $query .= " ORDER BY ";
+
+                  foreach ($sort as $field) {
+                        if ($sortString != "") {
+                              $sortString .= ", ";
+                        }
+                        $sortString .= "$field";
+                  }
+            }
+
+            $query .= "$sortString;";
+
+            $result = $this->db->query($query);
+            if ($result) {
+                  return $this->convertCursorToArray($result);
+            } else {
+                  return [];
+            }
+      }
+
+   //NOTE Constructor
+      /**
+       * @param string $host
+       * @param string $port
+       * @param string $username
+       * @param string $password
+       * @param string $dbName
+       * @param int $auto_MySqlEnum
+       */
+      public function __construct($dbName, $host = "localhost", $port = "3306", $username = "root", $password = "", $auto_MySqlEnum = 15)
+      {
+            $this->host = $host;
+            $this->port = $port;
+            $this->username = $username;
+            $this->password = $password;
+            $this->dbName = $dbName;
+
+            $this->auto_MySqlEnum = $auto_MySqlEnum;
+
+            $this->reconnect();
+      }
+
+   //NOTE Properties Getter/Setter
+      /**
+       * @param string $host
+       */
+      public function setHost($host)
+      {
+            parent::setHost($host);
+
+            $this->reconnect();
+      }
+
+      /**
+       * @param string $port
+       */
+      public function setPort($port)
+      {
+            parent::setPort($port);
+
+            $this->reconnect();
+      }
+
+      /**
+       * @param string $username
+       */
+      public function setUsername($username)
+      {
+            parent::setUsername($username);
+
+            $this->reconnect();
+      }
+
+      /**
+       * @param string $password
+       */
+      public function setPassword($password)
+      {
+            parent::setPassword($password);
+
+            $this->reconnect();
+      }
+
+      /**
+       * @param string $dbName
+       */
+      public function setDbName($dbName)
+      {
+            parent::setDbName($dbName);
+
+            $this->reconnect();
+      }
+
+      /**
+       * @return boolean
+       */
+      public function getAuto()
+      {
+            return $this->auto;
+      }
+
+      /**
+       * @param boolean $auto
+       *
+       * @return void
+       */
+      public function setAuto($auto)
+      {
+            if (gettype($auto) === "boolean") {
+                  $this->auto = $auto;
+            }
+      }
+
+   //NOTE Public Functions
+      /**
+       * @param string $table
+       * @param array $fields
+       * @param boolean $return
+       *
+       * @return array|string|int
+       */
+      public function insert($table, array $fields = [], $return = true)
+      {
+            $query = "";
+            $fieldsList = "";
+            $valuesList = "";
+            $hasId = false;
+            $hasTable = true;
+
+            if ($this->auto_MySqlEnum > 0) {
+                  $hasTable = ($this->db->query("SHOW TABLES LIKE '$table';")->num_rows > 0);
+            }
+
+            if ($this->auto_MySqlEnum & MySqlEnum::AutoCreateTable) {
+                  if (!$hasTable) {
+                        $tableFields = [];
+
+                        foreach ($fields as $field => $value) {
+                              $type = "";
+                              switch (gettype($value)) {
+                                    case "string":
+                                          $type = "VARCHAR(255)";
+                                          break;
+
+                                    case "int":
+                                    case "integer":
+                                          $type = "INT";
+                                          break;
+
+                                    case "boolean":
+                                    case "bool":
+                                          $type = "BOOL";
+                                          break;
+
+                                    default:
+                                          $type = "";
+                              }
+                              $isUsNnAiPk = (($field == "id") || ($field == "_id"));
+                              if ($isUsNnAiPk) {
+                                    $hasId = true;
+                              }
+                              array_push($tableFields, new Field($field, $type, $isUsNnAiPk, $isUsNnAiPk, $isUsNnAiPk, $isUsNnAiPk));
+                        }
+
+                        if (!$hasId) {
+                              array_push($tableFields, new Field("_id", "INT", true, true, true, true));
+                        }
+
+                        $this->createTable($table, $tableFields);
+                  }
+            }
+
+            if ($this->auto_MySqlEnum & (MySqlEnum::AutoAddFields | MySqlEnum::AutoRemoveFields | MySqlEnum::AutoChangeFields)) {
+                  if ($hasTable) {
+            //TODO Update table fields automate by new insert fields
+                  }
+            }
+
+            foreach ($fields as $fieldName => $value) {
+                  if ($fieldsList !== "") {
+                        $fieldsList .= ", ";
+                  }
+                  $fieldsList .= $fieldName;
+
+                  if ($valuesList !== "") {
+                        $valuesList .= ", ";
+                  }
+                  if (gettype($value) == "string") {
+                        $valuesList .= "'$value'";
+                  } else {
+                        $valuesList .= $value;
+                  }
+            }
+
+            $query = "INSERT INTO $table ($fieldsList) VALUES ($valuesList);";
+            $result = $this->db->query($query);
+            if ($result && ($return === true)) {
+                  return $this->select($table, ["_id" => $this->db->insert_id]);
+            } else {
+                  return $this->db->insert_id;
+            }
+      }
+
+      /**
+       * @param string $table
+       * @param array $conditions
+       * @param array $sort
+       *
+       * @return array
+       */
+      public function select($table, array $conditions = [], array $sort = [])
+      {
+            return $this->selectQuery($table, $conditions, $sort, false, []);
+      }
+
+      /**
+       * @param string $table
+       * @param array $conditions
+       * @param array $fields
+       * @param array $sort
+       *
+       * @return array
+       */
+      public function selectDistinct($table, array $conditions = [], array $fields = [], array $sort = [])
+      {
+            return $this->selectQuery($table, $conditions, $sort, true, $fields);
+      }
+
+      /**
+       * Delete Query Function
+       *
+       * @param string $table
+       * @param array $conditions
+       * @param boolean $return
+       *
+       * @return array|boolean
+       */
+      public function delete($table, array $conditions = [], $return = true)
+      {
+            $query = "DELETE FROM $table";
+
+            if ($return === true) {
+                  $rows = $this->select($table, $conditions);
+            }
+
+            if (count($conditions) > 0) {
+                  $query .= " WHERE";
+                  $conditionString = "";
+
+                  foreach ($conditions as $fieldName => $value) {
+                        if ($conditionString !== "") {
+                              $conditionString .= " AND";
+                        }
+
+                        if (gettype($value) == "string") {
+                              $text = "'$value'";
+                        } else {
+                              $text = $value;
+                        }
+
+                        $conditionString .= " $fieldName = $text";
+                  }
+            }
+
+            $query .= $conditionString;
+            $result = $this->db->query($query);
+            if ($result && ($return === true)) {
+                  return $rows;
+            } else {
+                  return $result;
+            }
+      }
+
+      /**
+       * @param string $table
+       * @param array $conditions
+       * @param array $fields
+       * @param boolean $return
+       *
+       * @return array|boolean
+       */
+      public function update($table, array $conditions = [], array $fields = [], $return = true)
+      {
+            $query = "UPDATE $table";
+            $setString = "";
+            $conditionString = "";
+
+            foreach ($fields as $fieldName => $value) {
+                  if ($setString !== "") {
+                        $setString .= ", ";
+                  }
+
+                  if (gettype($value) == "string") {
+                        $valueText = "'$value'";
+                  } else {
+                        $valueText = $value;
+                  }
+
+                  $setString .= "$fieldName = $valueText";
+            }
+
+            $query .= " SET $setString";
+
+            if (count($conditions) > 0) {
+                  $query .= " WHERE";
+                  foreach ($conditions as $field => $value) {
+                        if ($conditionString !== "") {
+                              $conditionString .= " AND";
+                        }
+
+                        if (gettype($value) == "string") {
+                              $valueText = "'$value'";
+                        } else {
+                              $valueText = $value;
+                        }
+
+                        $conditionString .= " $field = $valueText";
+                  }
+
+                  $query .= "$conditionString";
+            }
+
+            $result = $this->db->query($query);
+            if ($result && ($return === true)) {
+                  return $this->select($table, $conditions);
+            } else {
+                  return $result;
+            }
+      }
+
+      public function count($table)
+      {
+            $query = "SELECT count(*) AS cnt FROM $table;";
+            $result = $this->db->query($query);
+            return (int)$result->fetch_array()["cnt"];
+      #return (int)$this->db->{$this->dbName}->{$table}->count();
+      }
+
+      public function query($query)
+      {
+            return $this->db->query($query);
+      #return $this->db->{$this->dbName}->{$table}->{$command}($parameters);
+      }
+
+      /**
+       * @param string $db
+       *
+       * @return boolean
+       */
+      public function createDatafase($db, $selectDb = true)
+      {
+            $query = "CREATE SCHEMA $db;";
+            $result = $this->db->query($query);
+
+            if ($result && ($selectDb === true)) {
+                  $this->db->select_db($db);
+            }
+
+            return $result;
+      }
+
+      /**
+       * @param string $table
+       * @param Field[] $fields
+       *
+       * @return void
+       */
+      public function createTable($table, array $fields)
+      {
+            $query = "CREATE TABLE $table (";
+            $fieldsString = "";
+
+            foreach ($fields as $field) {
+                  if ($field instanceof Field) {
+                        if ($fieldsString != "") {
+                              $fieldsString .= ", ";
+                        }
+
+                        $fieldsString .= "{$field->getName()} {$field->getType()}";
+
+                        if ((strtolower($field->getType()) === "int") && ($field->getUnsigned() === true)) {
+                              $fieldsString .= " UNSIGNED";
+                        }
+
+                        if ($field->getNotNull() === true) {
+                              $fieldsString .= " NOT NULL";
+                        }
+
+                        if ((strtolower($field->getType()) === "int") && ($field->getAutoIncrement() === true)) {
+                              $fieldsString .= " AUTO_INCREMENT";
+                        }
+
+                        if ($field->getPrimary() === true) {
+                              $fieldsString .= " PRIMARY KEY";
+                        }
+
+                        if ($field->getDefault() != null) {
+                              $fieldsString .= " {$field->getDefault()}";
+                        }
+                  }
+            }
+            $query .= " $fieldsString);";
+
+            return $this->db->query($query);
+      }
+
+      /**
+       * @param string $table
+       * @param Field[] $fields
+       * @param int $auto
+       *
+       * @return boolean
+       */
+      public function alterTable($table, array $fields, $auto_MySqlEnum)
+      {
+      //TODO Alter Table Query
+      }
+}
