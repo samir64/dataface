@@ -214,3 +214,12 @@ class Number extends Entity
 
 ## Use Your Entity
 
+### Entity functions
+
+```php
+function refresh(); // If entity's id has value and is exists in database, set other fields
+function search(array $sort = []); // search data matched by entity fields (except id)
+function searchDistinct(array $fields, array $sort = []);
+function update(); // If entity's id has value and is exists in database, edit row with that id by entity fields, else if entity is not exists in database, insert new record by entity data
+function delete();
+```
