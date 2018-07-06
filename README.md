@@ -12,13 +12,13 @@ $db = new \Dataface\MySql("dbname", "host", "port", "username", "passoord");
 
 ### For MongoDB
 
-$In PHP 5.x$
+__In PHP 5.x__
 
 ```php
 $db = new \Dataface\Mongo(5, "dbname", "host", "port", "username", "passoord");
 ```
 
-$In PHP 7.x$
+__In PHP 7.x__
 
 ```php
 $db = new \Dataface\Mongo(7, "dbname", "host", "port", "username", "passoord");
