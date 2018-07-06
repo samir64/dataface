@@ -36,15 +36,15 @@ $db = new \Dataface\Mongo(7, "dbname", "host", "port", "username", "passoord");
 ### __Simple Entity__
 
 ```php
-class Person extends Entity
+class Person extends \Dataface\Entity
 {
     protected $_first_name;
     protected $_last_name;
 
     public function __construct($db, $id = null, $defaultFields = array())
     {
-        $this->_first_name = new Field("first_name", "string");
-        $this->_last_name = new Field("last_name", "string");
+        $this->_first_name = new \Dataface\Entity\Field("first_name", "string");
+        $this->_last_name = new \Dataface\Entity\Field("last_name", "string");
 
         parent::__construct($db, "persons", "_id", "string", $id, $defaultFields);
     }
@@ -78,15 +78,15 @@ class Person extends Entity
 ```
 
 ```php
-class Number extends Entity
+class Number extends \Dataface\Entity
 {
     protected $_personId;
     protected $_phone_number;
 
     public function __construct($db, $id = null, $defaultFields = array())
     {
-        $this->_personId = new Field("person_id", "string");
-        $this->_phone_number = new Field("phone_number", "string");
+        $this->_personId = new \Dataface\Entity\Field("person_id", "string");
+        $this->_phone_number = new \Dataface\Entity\Field("phone_number", "string");
 
         parent::__construct($db, "numbers", "_id", "string", $id, $defaultFields);
     }
@@ -122,15 +122,15 @@ class Number extends Entity
 ### __Advanced Entity__
 
 ```php
-class Person extends Entity
+class Person extends \Dataface\Entity
 {
     protected $_first_name;
     protected $_last_name;
 
     public function __construct($db, $id = null, $defaultFields = array())
     {
-        $this->_first_name = new Field("first_name", "string");
-        $this->_last_name = new Field("last_name", "string");
+        $this->_first_name = new \Dataface\Entity\Field("first_name", "string");
+        $this->_last_name = new \Dataface\Entity\Field("last_name", "string");
 
         parent::__construct($db, "persons", "_id", "string", $id, $defaultFields);
     }
@@ -169,15 +169,15 @@ class Person extends Entity
 ```
 
 ```php
-class Number extends Entity
+class Number extends \Dataface\Entity
 {
     protected $_person;
     protected $_phone_number;
 
     public function __construct($db, $id = null, $defaultFields = array())
     {
-        $this->_person = new Field("person_id", "string");
-        $this->_phone_number = new Field("phone_number", "string");
+        $this->_person = new \Dataface\Entity\Field("person_id", "string");
+        $this->_phone_number = new \Dataface\Entity\Field("phone_number", "string");
 
         parent::__construct($db, "numbers", "_id", "string", $id, $defaultFields);
     }
