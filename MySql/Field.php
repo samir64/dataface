@@ -1,9 +1,9 @@
 <?php
-namespace Datafase\MySql;
+namespace Dataface\MySql;
 
 class Field
 {
-   //TODO Private Variables
+   //NOTE Private Variables
     /**
      * @var string
      */
@@ -39,7 +39,7 @@ class Field
      */
     private $default;
 
-   //TODO Constructor
+   //NOTE Constructor
     /**
      * @param string $name
      * @param string $type
@@ -58,142 +58,70 @@ class Field
         $this->default = $default;
     }
 
-   //TOTO Properties Getter/Setter
-    /**
-     * @return string
-     */
-    public function getName()
+   //NOTE Properties Getter/Setter
+    public function __get($name)
     {
-        return $this->name;
-    }
+        switch ($name) {
+            case "name":
+                return $this->name;
+                break;
 
-    /**
-     * @param string $name
-     *
-     * @return void
-     */
-    public function setName($name)
-    {
-        if (gettype($name) == "string") {
-            $this->name = $name;
+            case "type":
+                return $this->type;
+                break;
+
+            case "unsigned":
+                return $this->unsigned;
+                break;
+
+            case "notNull":
+                return $this->notNull;
+                break;
+
+            case "autoIncrement":
+                return $this->autoIncrement;
+                break;
+
+            case "primary":
+                return $this->primary;
+                break;
+
+            case "default":
+                return $this->default;
+                break;
         }
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function __set($name, $value)
     {
-        return $this->type;
-    }
+        switch ($name) {
+            case "name":
+                $this->name = $value;
+                break;
 
-    /**
-     * @param string $type
-     *
-     * @return void
-     */
-    public function setType($type)
-    {
-        if (gettype($type) == "string") {
-            $this->type = $type;
+            case "type":
+                $this->type = $value;
+                break;
+
+            case "unsigned":
+                $this->unsigned = $value;
+                break;
+
+            case "notNull":
+                $this->notNull = $value;
+                break;
+
+            case "autoIncrement":
+                $this->autoIncrement = $value;
+                break;
+
+            case "primary":
+                $this->primary = $value;
+                break;
+
+            case "default":
+                $this->default = $value;
+                break;
         }
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getUnsigned()
-    {
-        return $this->unsigned;
-    }
-
-    /**
-     * @param boolean $unsigned
-     *
-     * @return void
-     */
-    public function setUnsigned($unsigned)
-    {
-        if (gettype($unsigned) == "boolean") {
-            $this->unsigned = $unsigned;
-        }
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getNotNull()
-    {
-        return $this->notNull;
-    }
-
-    /**
-     * @param boolean $notNull
-     *
-     * @return void
-     */
-    public function setNotNull($notNull)
-    {
-        if (gettype($notNull) == "boolean") {
-            $this->notNull = $notNull;
-        }
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getAutoIncrement()
-    {
-        return $this->autoIncrement;
-    }
-
-    /**
-     * @param boolean $autoIncrement
-     *
-     * @return void
-     */
-    public function setAutoIncrement($autoIncrement)
-    {
-        if (gettype($autoIncrement) == "boolean") {
-            $this->autoIncrement = $autoIncrement;
-        }
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getPrimary()
-    {
-        return $this->primary;
-    }
-
-    /**
-     * @param boolean $primary
-     *
-     * @return void
-     */
-    public function setPrimary($primary)
-    {
-        if (gettype($primary) == "boolean") {
-            $this->primary = $primary;
-        }
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getDefault()
-    {
-        return $this->default;
-    }
-
-    /**
-     * @param boolean $default
-     *
-     * @return void
-     */
-    public function setDefault($default)
-    {
-        $this->default = $default;
     }
 }

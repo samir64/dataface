@@ -1,12 +1,12 @@
 <?php
-namespace Datafase;
+namespace Dataface;
 
-import(__File__, "..", "Datafase.php");
-import(__File__, "", "Field.php");
+require_once realpath(dirname(__FILE__) . "/" . "../Dataface.php");
+require_once realpath(dirname(__FILE__) . "/" . "Field.php");
 
-use \Datafase\MySql\Field;
+use \Dataface\MySql\Field;
 
-class MySql extends \Datafase
+class MySql extends \Dataface
 {
    //NOTE Constants
       const MySqlEnum_AutoCreateTable = 1;
@@ -160,57 +160,7 @@ class MySql extends \Datafase
             $this->reconnect();
       }
 
-   //NOTE Properties Getter/Setter
-      /**
-       * @param string $host
-       */
-      public function setHost($host)
-      {
-            parent::setHost($host);
-
-            $this->reconnect();
-      }
-
-      /**
-       * @param string $port
-       */
-      public function setPort($port)
-      {
-            parent::setPort($port);
-
-            $this->reconnect();
-      }
-
-      /**
-       * @param string $username
-       */
-      public function setUsername($username)
-      {
-            parent::setUsername($username);
-
-            $this->reconnect();
-      }
-
-      /**
-       * @param string $password
-       */
-      public function setPassword($password)
-      {
-            parent::setPassword($password);
-
-            $this->reconnect();
-      }
-
-      /**
-       * @param string $dbName
-       */
-      public function setDbName($dbName)
-      {
-            parent::setDbName($dbName);
-
-            $this->reconnect();
-      }
-
+      //NOTE Properties Getter/Setter
       /**
        * @return boolean
        */
@@ -239,19 +189,19 @@ class MySql extends \Datafase
        *
        * @return array|string|int
        */
-      public function insert($table, array $fields = [], $return = true)
+      public function insert($table, array $fields = [], $returnRow = false)
       {
             $query = "";
             $fieldsList = "";
             $valuesList = "";
-            $hasId = false;
+            $tableId = "";
             $hasTable = true;
 
             if ($this->auto_MySqlEnum > 0) {
                   $hasTable = ($this->db->query("SHOW TABLES LIKE '$table';")->num_rows > 0);
             }
 
-            if ($this->auto_MySqlEnum & MySqlEnum::AutoCreateTable) {
+            if ($this->auto_MySqlEnum & MySql::MySqlEnum_AutoCreateTable) {
                   if (!$hasTable) {
                         $tableFields = [];
 
@@ -277,12 +227,12 @@ class MySql extends \Datafase
                               }
                               $isUsNnAiPk = (($field == "id") || ($field == "_id"));
                               if ($isUsNnAiPk) {
-                                    $hasId = true;
+                                    $tableId = $field;
                               }
                               array_push($tableFields, new Field($field, $type, $isUsNnAiPk, $isUsNnAiPk, $isUsNnAiPk, $isUsNnAiPk));
                         }
 
-                        if (!$hasId) {
+                        if ($tableId == "") {
                               array_push($tableFields, new Field("_id", "INT", true, true, true, true));
                         }
 
@@ -290,7 +240,7 @@ class MySql extends \Datafase
                   }
             }
 
-            if ($this->auto_MySqlEnum & (MySqlEnum::AutoAddFields | MySqlEnum::AutoRemoveFields | MySqlEnum::AutoChangeFields)) {
+            if ($this->auto_MySqlEnum & (MySql::MySqlEnum_AutoAddField | MySql::MySqlEnum_AutoRemoveField | MySql::MySqlEnum_AutoChangeField)) {
                   if ($hasTable) {
             //TODO Update table fields automate by new insert fields
                   }
@@ -314,8 +264,14 @@ class MySql extends \Datafase
 
             $query = "INSERT INTO $table ($fieldsList) VALUES ($valuesList);";
             $result = $this->db->query($query);
-            if ($result && ($return === true)) {
-                  return $this->select($table, ["_id" => $this->db->insert_id]);
+            if ($result && ($returnRow === true)) {
+                  if ($tableId == "") {
+                        $query = "SHOW KEYS FROM $table WHERE key_name = 'PRIMARY';";
+                        $result = $this->db->query($query)->fetch_assoc();
+                        $tableId = $result["Column_name"];
+                  }
+
+                  return $this->select($table, [$tableId => $this->db->insert_id])[0];
             } else {
                   return $this->db->insert_id;
             }
@@ -355,13 +311,9 @@ class MySql extends \Datafase
        *
        * @return array|boolean
        */
-      public function delete($table, array $conditions = [], $return = true)
+      public function delete($table, array $conditions = [])
       {
             $query = "DELETE FROM $table";
-
-            if ($return === true) {
-                  $rows = $this->select($table, $conditions);
-            }
 
             if (count($conditions) > 0) {
                   $query .= " WHERE";
@@ -384,11 +336,7 @@ class MySql extends \Datafase
 
             $query .= $conditionString;
             $result = $this->db->query($query);
-            if ($result && ($return === true)) {
-                  return $rows;
-            } else {
-                  return $result;
-            }
+            return $result;
       }
 
       /**
@@ -399,7 +347,7 @@ class MySql extends \Datafase
        *
        * @return array|boolean
        */
-      public function update($table, array $conditions = [], array $fields = [], $return = true)
+      public function update($table, array $conditions = [], array $fields = [])
       {
             $query = "UPDATE $table";
             $setString = "";
@@ -441,11 +389,7 @@ class MySql extends \Datafase
             }
 
             $result = $this->db->query($query);
-            if ($result && ($return === true)) {
-                  return $this->select($table, $conditions);
-            } else {
-                  return $result;
-            }
+            return $result;
       }
 
       public function count($table)
@@ -467,7 +411,7 @@ class MySql extends \Datafase
        *
        * @return boolean
        */
-      public function createDatafase($db, $selectDb = true)
+      public function createDataface($db, $selectDb = true)
       {
             $query = "CREATE SCHEMA $db;";
             $result = $this->db->query($query);
@@ -496,26 +440,26 @@ class MySql extends \Datafase
                               $fieldsString .= ", ";
                         }
 
-                        $fieldsString .= "{$field->getName()} {$field->getType()}";
+                        $fieldsString .= "{$field->name} {$field->type}";
 
-                        if ((strtolower($field->getType()) === "int") && ($field->getUnsigned() === true)) {
+                        if ((strtolower($field->type) === "int") && ($field->unsigned === true)) {
                               $fieldsString .= " UNSIGNED";
                         }
 
-                        if ($field->getNotNull() === true) {
+                        if ($field->notNull === true) {
                               $fieldsString .= " NOT NULL";
                         }
 
-                        if ((strtolower($field->getType()) === "int") && ($field->getAutoIncrement() === true)) {
+                        if ((strtolower($field->type) === "int") && ($field->autoIncrement === true)) {
                               $fieldsString .= " AUTO_INCREMENT";
                         }
 
-                        if ($field->getPrimary() === true) {
+                        if ($field->primary === true) {
                               $fieldsString .= " PRIMARY KEY";
                         }
 
-                        if ($field->getDefault() != null) {
-                              $fieldsString .= " {$field->getDefault()}";
+                        if ($field->default != null) {
+                              $fieldsString .= " {$field->default}";
                         }
                   }
             }

@@ -7,22 +7,22 @@
  * Time: 6:51 PM
  */
 
-namespace Datafase\Mongo;
+namespace Dataface\Mongo;
 
 
-require_once realpath(dirname(__FILE__) . "/" . "../Datafase.php");
+require_once realpath(dirname(__FILE__) . "/" . "../Dataface.php");
 
 
-class Php5Mongo extends \Datafase
+class Php5Mongo extends \Dataface
 {
-	//TODO Private Variables
+	//NOTE Private Variables
 	/**
 	 * @var \MongoDB\Driver\Manager
 	 */
 	private $db;
 
 
-	//TODO Private Functions
+	//NOTE Private Functions
 	/**
 	 *
 	 */
@@ -57,14 +57,12 @@ class Php5Mongo extends \Datafase
 		$this->db = new \MongoClient($server);
 
 		if ($this->dbName) {
-//			$this->db = $db->{$this->dbName};
-		} else {
-//			$this->db = null;
+			//TODO Select Database
 		}
 	}
 
 
-	//TODO Private Functions
+	//NOTE Private Functions
 	/**
 	 * @param \MongoCursor|\MongoDB\Driver\Cursor|\MongoDB\Driver\WriteResult $cursor
 	 *
@@ -82,7 +80,7 @@ class Php5Mongo extends \Datafase
 	}
 
 
-	//TODO Public Functions
+	//NOTE Public Functions
 	/**
 	 * Mongo constructor.
 	 * @param string $host
@@ -103,59 +101,7 @@ class Php5Mongo extends \Datafase
 	}
 
 
-	//TODO Public Functions: Properties Getter/Setter
-	/**
-	 * @param string $host
-	 */
-	public function setHost($host)
-	{
-		parent::setHost($host);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $port
-	 */
-	public function setPort($port)
-	{
-		parent::setPort($port);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $username
-	 */
-	public function setUsername($username)
-	{
-		parent::setUsername($username);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $password
-	 */
-	public function setPassword($password)
-	{
-		parent::setPassword($password);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $dbName
-	 */
-	public function setDbName($dbName)
-	{
-		parent::setDbName($dbName);
-
-		$this->reconnect();
-	}
-
-
-	//TODO Public Functions: Actions
+	//NOTE Public Functions: Actions
 	/**
 	 * @param string $collection
 	 * @param array $fields
@@ -163,7 +109,7 @@ class Php5Mongo extends \Datafase
 	 *
 	 * @return array|string
 	 */
-	public function insert($collection, array $fields = [], $return = true)
+	public function insert($collection, array $fields = [], $returnRow = false)
 	{
 		return $this->convertCursorToArray($this->db->{$this->dbName}->{$collection}->insert($fields));
 	}
@@ -214,7 +160,7 @@ class Php5Mongo extends \Datafase
 	 * 
 	 * @return array|boolean
 	 */
-	public function delete($collection, array $conditions = [], $return = true)
+	public function delete($collection, array $conditions = [])
 	{
 		return $this->convertCursorToArray($this->db->{$this->dbName}->{$collection}->remove($conditions));
 	}
@@ -227,7 +173,7 @@ class Php5Mongo extends \Datafase
 	 * 
 	 * @return array|boolean
 	 */
-	public function update($collection, array $conditions = [], array $fields = [], $return = true)
+	public function update($collection, array $conditions = [], array $fields = [])
 	{
 		return $this->convertCursorToArray($this->db->{$this->dbName}->{$collection}->update($conditions, ['$set' => $fields]));
 	}

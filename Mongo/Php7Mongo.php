@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: samir
@@ -6,22 +7,22 @@
  * Time: 6:51 PM
  */
 
-namespace Datafase\Mongo;
+namespace Dataface\Mongo;
 
 
-require_once realpath(dirname(__FILE__) . "/" . "../Datafase.php");
+require_once realpath(dirname(__FILE__) . "/" . "../Dataface.php");
 
 
-class Php7Mongo extends \Datafase
+class Php7Mongo extends \Dataface
 {
-	//TODO Private Variables
+	//NOTE Private Variables
 	/**
 	 * @var \MongoDB\Driver\Manager
 	 */
 	private $db;
 
 
-	//TODO Private Functions
+	//NOTE Private Functions
 	/**
 	 *
 	 */
@@ -57,7 +58,7 @@ class Php7Mongo extends \Datafase
 	}
 
 
-	//TODO Private Functions
+	//NOTE Private Functions
 	/**
 	 * param \MongoCursor $cursor
 	 * @param \MongoDB\Driver\Cursor|\MongoDB\Driver\WriteResult $cursor
@@ -76,7 +77,7 @@ class Php7Mongo extends \Datafase
 	}
 
 
-	//TODO Public Functions
+	//NOTE Public Functions
 	/**
 	 * Mongo constructor.
 	 * @param string $host
@@ -97,59 +98,7 @@ class Php7Mongo extends \Datafase
 	}
 
 
-	//TODO Public Functions: Properties Getter/Setter
-	/**
-	 * @param string $host
-	 */
-	public function setHost($host)
-	{
-		parent::setHost($host);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $port
-	 */
-	public function setPort($port)
-	{
-		parent::setPort($port);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $username
-	 */
-	public function setUsername($username)
-	{
-		parent::setUsername($username);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $password
-	 */
-	public function setPassword($password)
-	{
-		parent::setPassword($password);
-
-		$this->reconnect();
-	}
-
-	/**
-	 * @param string $dbName
-	 */
-	public function setDbName($dbName)
-	{
-		parent::setDbName($dbName);
-
-		$this->reconnect();
-	}
-
-
-	//TODO Public Functions: Actions
+	//NOTE Public Functions: Actions
 	/**
 	 * @param string $collection
 	 * @param array $fields
@@ -157,7 +106,7 @@ class Php7Mongo extends \Datafase
 	 *
 	 * @return array|string
 	 */
-	public function insert($collection, array $fields = [], $return = true)
+	public function insert($collection, array $fields = [], $returnRow = false)
 	{
 		$bulk = new \MongoDB\Driver\BulkWrite();
 		$result = $bulk->insert($fields);
@@ -202,7 +151,7 @@ class Php7Mongo extends \Datafase
 	 * 
 	 * @return array|boolean
 	 */
-	public function delete($collection, array $conditions = [], $return = true)
+	public function delete($collection, array $conditions = [])
 	{
 		$bulk = new \MongoDB\Driver\BulkWrite();
 		$bulk->delete($conditions);
@@ -218,7 +167,7 @@ class Php7Mongo extends \Datafase
 	 * 
 	 * @return array|boolean
 	 */
-	public function update($collection, array $conditions = [], array $fields = [], $return = true)
+	public function update($collection, array $conditions = [], array $fields = [])
 	{
 		$bulk = new \MongoDB\Driver\BulkWrite();
 		$result = $bulk->update($conditions, $fields);

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: samir
@@ -6,20 +7,20 @@
  * Time: 6:47 PM
  */
 
-namespace Datafase\Entity;
+namespace Dataface\Entity;
 
 
-	/**
-	 * Class Field
-	 * @package Datafase\Entity
-	 */
 /**
  * Class Field
- * @package Datafase\Entity
+ * @package Dataface\Entity
+ */
+/**
+ * Class Field
+ * @package Dataface\Entity
  */
 class Field
 {
-	//TODO Private Variables
+	//NOTE Private Variables
 	/**
 	 * @var string
 	 */
@@ -54,92 +55,86 @@ class Field
 		$this->name = $name;
 
 		$this->defaultValue = $defaultValue;
-		$this->setValue($defaultValue);
+		$this->__set("value", $defaultValue);
 		$this->valueChanged = false;
 	}
 
 
-	//TODO Properties Getter/Setter
-	/**
-	 * @return mixed
-	 */
-	final public function getDefaultValue()
+	//NOTE Properties Getter/Setter
+	public function __get($name)
 	{
-		return $this->defaultValue;
-	}
+		switch ($name) {
+			case "default":
+				return $this->defaultValue;
+				break;
 
-	/**
-	 * @return string
-	 */
-	final public function getType()
-	{
-		return $this->type;
-	}
+			case "type":
+				return $this->type;
+				break;
 
-	/**
-	 * @return string
-	 */
-	final public function getName()
-	{
-		return (string)$this->name;
-	}
+			case "name":
+				return $this->name;
+				break;
 
-	/**
-	 * @return mixed
-	 */
-	public function getValue()
-	{
-		return $this->value;
-	}
+			case "value":
+				return $this->value;
+				break;
 
-	/**
-	 * @param mixed $value
-	 */
-	public function setValue($value)
-	{
-		if ($value !== null) {
-			switch ($this->type) {
-				case 'string':
-					$value = strval($value);
-					break;
-				
-				case 'boolean':
-				case 'bool':
-					$value = ($value === true);
-					break;
-
-				case 'integer':
-				case 'int':
-					$value = intval($value);
-					break;
-				
-				default:
-					break;
-			}
-		}
-
-		if (($value == null) || ($this->type === "mixed") || (gettype($value) === $this->type)) {
-			if ($value !== $this->value) {
-				$this->valueChanged = true;
-			}
-
-			$this->value = $value;
+			case "valueChanged":
+				return $this->valueChanged;
+				break;
 		}
 	}
 
-	/**
-	 * @return boolean
-	 */
-	final public function getValueChanged()
+	public function __set($name, $value)
 	{
-		return $this->valueChanged;
-	}
+		switch ($name) {
+			case "default":
+				$this->defaultValue = $value;
+				break;
 
-	/**
-	 * @param boolean $valueChanged
-	 */
-	final public function setValueChanged($valueChanged)
-	{
-		$this->valueChanged = $valueChanged;
+			case "type":
+				$this->type = $value;
+				break;
+
+			case "name":
+				$this->name = $value;
+				break;
+
+			case "value":
+				if ($value !== null) {
+					switch ($this->type) {
+						case 'string':
+							$value = strval($value);
+							break;
+
+						case 'boolean':
+						case 'bool':
+							$value = ($value === true);
+							break;
+
+						case 'integer':
+						case 'int':
+							$value = intval($value);
+							break;
+
+						default:
+							break;
+					}
+				}
+
+				if (($value == null) || ($this->type === "mixed") || (gettype($value) === $this->type)) {
+					if ($value !== $this->value) {
+						$this->valueChanged = true;
+					}
+
+					$this->value = $value;
+				}
+				break;
+
+			case "valueChanged":
+				$this->valueChanged = $value;
+				break;
+		}
 	}
 }

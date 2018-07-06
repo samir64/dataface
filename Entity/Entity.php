@@ -7,26 +7,28 @@
  * Time: 5:40 PM
  */
 
-namespace Datafase;
+namespace Dataface;
 
-use Datafase;
-use Datafase\Entity\Field;
+use Dataface;
+use Dataface\Entity\Field;
 
 
 require_once realpath(dirname(__FILE__) . "/" . "Field.php");
 
 /**
  * Class Entity
- * @package Datafase
+ * @package Dataface
+ * 
+ * @property-read mixed $id
  */
 abstract class Entity
 {
 	/**
 	 * @var Field
 	 */
-	protected $id;
+	protected $_id;
 	/**
-	 * @var Datafase
+	 * @var Dataface
 	 */
 	protected $db;
 	/**
@@ -35,7 +37,11 @@ abstract class Entity
 	protected $tableName;
 
 
-	//TODO Private Functions
+	protected abstract function getColumn($name);
+	protected abstract function setColumn($name, $value);
+
+
+	//NOTE Private Functions
 	/**
 	 * @param bool $includeId
 	 * @param bool $includeEmpties
@@ -53,11 +59,11 @@ abstract class Entity
 		 */
 		foreach ($fields as $field => $value) {
 			if ($value instanceof Field) {
-				if ($includeId || ($field !== "id")) {
-					if ($value->getValue() !== null) {
-						$result[$value->getName()] = $value->getValue();
-					} else if ($includeEmpties && ($value->getValue() === null)) {
-						$result[$value->getName()] = $value->getDefaultValue();
+				if ($includeId || ($field !== $this->_id->name)) {
+					if ($value->value !== null) {
+						$result[$value->name] = $value->value;
+					} else if ($includeEmpties && ($value->value === null)) {
+						$result[$value->name] = $value->defaultValue;
 					}
 				}
 			}
@@ -77,13 +83,13 @@ abstract class Entity
 
 		foreach ($vars as $field => $value) {
 			if ($value instanceof Field) {
-				$vars_fields[$value->getName()] = $value;
+				$vars_fields[$value->name] = $value;
 			}
 		}
 
 		foreach ($fields as $field => $value) {
 			if (isset($vars_fields[$field])) {
-				$vars_fields[$field]->setValue($value);
+				$vars_fields[$field]->value = $value;
 			}
 		}
 	}
@@ -102,7 +108,7 @@ abstract class Entity
 		 */
 		foreach ($fields as $value) {
 			if ($value instanceof Field) {
-				if ($value->getValueChanged()) {
+				if ($value->valueChanged) {
 					$result = true;
 				}
 			}
@@ -125,7 +131,7 @@ abstract class Entity
 		 */
 		foreach ($fields as $value) {
 			if ($value instanceof Field) {
-				$value->setValueChanged($changed);
+				$value->valueChanged = $changed;
 			}
 		}
 	}
@@ -134,17 +140,17 @@ abstract class Entity
 	/**
 	 * Entity constructor.
 	 *
-	 * @param Datafase $db
+	 * @param Dataface $db
 	 * @param string $tableName
-	 * @param string $id
-	 * @param string $idFieldName
+	 * @param string $idFieldName = "_id"
 	 * @param string $idFieldType
+	 * @param string $id = null
 	 * @param array $defaultFields
 	 */
-	public function __construct($db, $tableName, $id = null, $idFieldName = "_id", $idFieldType = "mixed", $defaultFields = [])
+	public function __construct($db, $tableName, $idFieldName, $idFieldType, $id = null, $defaultFields = [])
 	{
-		$this->id = new Field($idFieldName, $idFieldType);
-		$this->id->setValue($id);
+		$this->_id = new Field($idFieldName, $idFieldType);
+		$this->_id->value = $id;
 
 		$this->db = $db;
 		$this->tableName = $tableName;
@@ -157,46 +163,47 @@ abstract class Entity
 	}
 
 
-	//TODO Properties Getter/Setter
-	/**
-	 * @return string
-	 */
-	final public function getId()
+	//NOTE Properties Getter/Setter
+	final public function __get($name)
 	{
-		return $this->id->getValue();
+		switch ($name) {
+			case "id":
+				return $this->_id->value;
+				break;
+
+			case "tableName":
+				return $this->tableName;
+				break;
+
+			case "db":
+				return $this->db;
+				break;
+		}
+
+		return $this->getColumn($name);
 	}
 
-	/**
-	 * @return string
-	 */
-	final public function getTableName()
+	final public function __set($name, $value)
 	{
-		return $this->tableName;
-	}
-
-	/**
-	 * @return Datafase
-	 */
-	final public function getDb()
-	{
-		return $this->db;
+		$this->setColumn($name, $value);
 	}
 
 
-	//TODO Public Functions
+	//NOTE Public Functions
 	/**
 	 *
 	 */
 	final function update()
 	{
-		$found = (count($this->db->select($this->tableName, [$this->id->getName() => $this->id->getValue()])) > 0);
+		$found = (count($this->db->select($this->tableName, [$this->_id->name => $this->_id->value])) > 0);
 
 		if ($found === true) {
 			if ($this->getEntityChanged() == true) {
-				$this->db->update($this->tableName, [$this->id->getName() => $this->id->getValue()], $this->getFields(false, true));
+				$this->db->update($this->tableName, [$this->_id->name => $this->_id->value], $this->getFields(false, true));
 			}
 		} else {
-			$this->db->insert($this->tableName, $this->getFields(($this->id->getValue() != null), true));
+			$result = $this->db->insert($this->tableName, $this->getFields(($this->_id->value != null), true), false);
+			$this->_id->value = $result;
 		}
 	}
 
@@ -205,8 +212,8 @@ abstract class Entity
 	 */
 	final function refresh()
 	{
-		if ($this->id->getValue() !== null) {
-			$result = $this->db->select($this->tableName, [$this->id->getName() => $this->id->getValue()]);
+		if ($this->_id->value !== null) {
+			$result = $this->db->select($this->tableName, [$this->_id->name => $this->_id->value]);
 
 			if (count($result) > 0) {
 				$this->setFields($result[0]);
@@ -228,7 +235,7 @@ abstract class Entity
 		$result = $this->db->select($this->tableName, $this->getFields(), $sort);
 
 		foreach ($result as $record) {
-			$entities[] = new $entityType($this->db, $record[$this->id->getName()], $this->id->getName(), $this->id->getType(), $record);
+			$entities[] = new $entityType($this->db, $record[$this->_id->name], $record);
 		}
 
 		return $entities;
@@ -248,7 +255,7 @@ abstract class Entity
 		$result = $this->db->selectDistinct($this->tableName, $this->getFields(), $fields, $sort);
 
 		foreach ($result as $record) {
-			$entities[] = new $entityType($this->db, $record[$this->id->getName()], $this->id->getName(), $this->id->getType(), $record);
+			$entities[] = new $entityType($this->db, $record[$this->_id->name], $this->_id->name, $this->_id->type, $record);
 		}
 
 		return $entities;
@@ -259,9 +266,9 @@ abstract class Entity
 	 */
 	final function delete()
 	{
-		if ($this->id->getValue() !== null) {
-			$this->db->delete($this->tableName, [$this->id->getName() => $this->id->getValue()]);
-			$this->id->setValue(null);
+		if ($this->_id->value !== null) {
+			$this->db->delete($this->tableName, [$this->_id->name => $this->_id->value]);
+			$this->_id->value = null;
 		}
 	}
 }

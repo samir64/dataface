@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: samir
@@ -6,28 +7,32 @@
  * Time: 5:54 PM
  */
 
-namespace Datafase;
+namespace Dataface;
 
 
-use Datafase\Mongo\Php5Mongo;
-use Datafase\Mongo\Php7Mongo;
+use Dataface\Mongo\Php5Mongo;
+use Dataface\Mongo\Php7Mongo;
 
 
-require_once realpath(dirname(__FILE__) . "/" . "Mongo/Php5Mongo.php");
-require_once realpath(dirname(__FILE__) . "/" . "Mongo/Php7Mongo.php");
+require_once realpath(dirname(__FILE__) . "/" . "Php5Mongo.php");
+require_once realpath(dirname(__FILE__) . "/" . "Php7Mongo.php");
 
 
 /**
  * Class Mongo
- * @package Datafase
+ * @package Dataface
  */
-class Mongo Extends \Datafase
+class Mongo extends \Dataface
 {
 	/**
 	 * @var Php5Mongo|Php7Mongo
 	 */
 	private $db;
 
+	protected function reconnect()
+	{
+		$this->db->reconnect();
+	}
 
 	/**
 	 * @param int $phpVersion
@@ -52,58 +57,20 @@ class Mongo Extends \Datafase
 	}
 
 
-	//TODO Public Functions: Properties Getter/Setter
-	/**
-	 * @param string $host
-	 */
-	public function setHost($host)
-	{
-		$this->db->setHost($host);
-	}
-
-	/**
-	 * @param string $port
-	 */
-	public function setPort($port)
-	{
-		$this->db->setPort($port);
-	}
-
-	/**
-	 * @param string $username
-	 */
-	public function setUsername($username)
-	{
-		$this->db->setUsername($username);
-	}
-
-	/**
-	 * @param string $password
-	 */
-	public function setPassword($password)
-	{
-		$this->db->setPassword($password);
-	}
-
-	/**
-	 * @param string $dbName
-	 */
-	public function setDbName($dbName)
-	{
-		$this->db->setDbName($dbName);
-	}
-
-
-	//TODO Public Functions: Actions
+	//NOTE Public Functions: Actions
 	/**
 	 * @param string $collection
 	 * @param array $fields
 	 *
 	 * @return string
 	 */
-	public function insert($collection, array $fields = [])
+	public function insert($collection, array $fields = [], $returnRow = false)
 	{
-		return $this->db->insert($collection, $fields);
+		$id = $this->db->insert($collection, $fields);
+
+		if ($returnRow === true) {
+			return $this->db->select($collection, ["_id" => $id]);
+		}
 	}
 
 	public function select($collection, array $conditions = [], array $sort = [])
