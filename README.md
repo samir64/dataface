@@ -12,13 +12,13 @@ $db = new \Dataface\MySql("dbname", "host", "port", "username", "passoord");
 
 ### For MongoDB
 
-__In PHP 5.x__
+_In PHP 5.x_
 
 ```php
 $db = new \Dataface\Mongo(5, "dbname", "host", "port", "username", "passoord");
 ```
 
-__In PHP 7.x__
+_In PHP 7.x_
 
 ```php
 $db = new \Dataface\Mongo(7, "dbname", "host", "port", "username", "passoord");
@@ -33,7 +33,7 @@ $db = new \Dataface\Mongo(7, "dbname", "host", "port", "username", "passoord");
 4. You must define two protected abstract function with names ```getColumn``` and ```setColumn``` for get and set fields
 5. You can define virtual related columns in get and set column's functions
 
-### __Simple Entity__
+### _Simple Entity_
 
 ```php
 class Person extends \Dataface\Entity
@@ -119,7 +119,7 @@ class Number extends \Dataface\Entity
 }
 ```
 
-### __Advanced Entity__
+### _Advanced Entity_
 
 ```php
 class Person extends \Dataface\Entity
