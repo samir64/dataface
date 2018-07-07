@@ -33,7 +33,28 @@ $db = new \Dataface\Mongo(7, "dbname", "host", "port", "username", "passoord");
 4. You must define two protected abstract function with names ```getColumn``` and ```setColumn``` for get and set fields
 5. You can define virtual related columns in get and set column's functions
 
-### _Simple Entity_
+### Sample Entities
+
+**For this database:**
+
+Table `persons`:
+
+| Column Name | Column Type |
+| ----------- | ----------- |
+| _id         | CHAR(50)    |
+| first_name  | CHAR(50)    |
+| last_name   | CHAR(50)    |
+
+
+Table `numbers`:
+
+| Column Name  | Column Type |
+| ------------ | ----------- |
+| _id          | CHAR(50)    |
+| person_id    | CHAR(50)    |
+| phone_number | CHAR(20)    |
+
+#### _Simple Entity_
 
 ```php
 class Person extends \Dataface\Entity
@@ -119,7 +140,7 @@ class Number extends \Dataface\Entity
 }
 ```
 
-### _Advanced Entity_
+#### _Advanced Entity_
 
 ```php
 class Person extends \Dataface\Entity
