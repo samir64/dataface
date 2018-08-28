@@ -174,7 +174,7 @@ class Php7Mongo extends \Dataface
     public function update($collection, array $conditions = [], array $fields = [])
     {
         $bulk = new \MongoDB\Driver\BulkWrite();
-        $result = $bulk->update($conditions, $fields);
+        $result = $bulk->update($conditions, ['$set' => $fields]);
 
         $this->db->executeBulkWrite($this->dbName . "." . $collection, $bulk);
 

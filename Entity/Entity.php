@@ -205,7 +205,7 @@ abstract class Entity
 
         if ($found === true) {
             if ($this->getEntityChanged() == true) {
-                $this->db->update($this->tableName, [$this->_id->name => $this->_id->value], $this->getFields(false, true));
+                $this->db->update($this->tableName, [$this->_id->name => $this->_id->value], $this->getFields(false, false));
             }
         } else {
             $result = $this->db->insert($this->tableName, $this->getFields(($this->_id->value != null), true), false);
