@@ -9,12 +9,13 @@
 
 namespace Dataface\Entity;
 
-
 /**
- * Class Field
- * @package Dataface\Entity
- */
-/**
+ * @property string name
+ * @property string type
+ * @property string value
+ * @property string defaultValue
+ * @property string valueChanged
+ *
  * Class Field
  * @package Dataface\Entity
  */

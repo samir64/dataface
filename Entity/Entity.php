@@ -18,257 +18,260 @@ require_once realpath(dirname(__FILE__) . "/" . "Field.php");
 /**
  * Class Entity
  * @package Dataface
- * 
+ *
  * @property-read mixed $id
  */
 abstract class Entity
 {
-	/**
-	 * @var Field
-	 */
-	protected $_id;
-	/**
-	 * @var Dataface
-	 */
-	protected $db;
-	/**
-	 * @var string
-	 */
-	protected $tableName;
+    /**
+     * @var Field
+     */
+    protected $_id;
+    /**
+     * @var Dataface
+     */
+    protected $db;
+    /**
+     * @var string
+     */
+    protected $tableName;
 
 
-	protected abstract function getColumn($name);
-	protected abstract function setColumn($name, $value);
+    protected abstract function getColumn($name);
+
+    protected abstract function setColumn($name, $value);
 
 
-	//NOTE Private Functions
-	/**
-	 * @param bool $includeId
-	 * @param bool $includeEmpties
-	 *
-	 * @return array
-	 */
-	private function getFields($includeId = false, $includeEmpties = false)
-	{
-		$result = [];
+    //NOTE Private Functions
 
-		$fields = get_object_vars($this);
+    /**
+     * @param bool $includeId
+     * @param bool $includeEmpties
+     *
+     * @return array
+     */
+    private function getFields($includeId = false, $includeEmpties = false)
+    {
+        $result = [];
 
-		/**
-		 * @var Field $value
-		 */
-		foreach ($fields as $field => $value) {
-			if ($value instanceof Field) {
-				if ($includeId || ($field !== $this->_id->name)) {
-					if ($value->value !== null) {
-						$result[$value->name] = $value->value;
-					} else if ($includeEmpties && ($value->value === null)) {
-						$result[$value->name] = $value->defaultValue;
-					}
-				}
-			}
-		}
+        $fields = get_object_vars($this);
 
-		return $result;
-	}
+        /**
+         * @var Field $value
+         */
+        foreach ($fields as $field => $value) {
+            if ($value instanceof Field) {
+                if ($includeId || ($field !== $this->_id->name)) {
+                    if ($value->value !== null) {
+                        $result[$value->name] = $value->value;
+                    } else if ($includeEmpties && ($value->value === null)) {
+                        $result[$value->name] = $value->defaultValue;
+                    }
+                }
+            }
+        }
 
-	/**
-	 * @param $fields
-	 */
-	private function setFields($fields)
-	{
-		$vars = get_object_vars($this);
-		/** @var Field[] $vars_fields */
-		$vars_fields = [];
+        return $result;
+    }
 
-		foreach ($vars as $field => $value) {
-			if ($value instanceof Field) {
-				$vars_fields[$value->name] = $value;
-			}
-		}
+    /**
+     * @param $fields
+     */
+    private function setFields($fields)
+    {
+        $vars = get_object_vars($this);
+        /** @var Field[] $vars_fields */
+        $vars_fields = [];
 
-		foreach ($fields as $field => $value) {
-			if (isset($vars_fields[$field])) {
-				$vars_fields[$field]->value = $value;
-			}
-		}
-	}
+        foreach ($vars as $field => $value) {
+            if ($value instanceof Field) {
+                $vars_fields[$value->name] = $value;
+            }
+        }
 
-	/**
-	 * @return bool
-	 */
-	private function getEntityChanged()
-	{
-		$result = false;
+        foreach ($fields as $field => $value) {
+            if (isset($vars_fields[$field])) {
+                $vars_fields[$field]->value = $value;
+            }
+        }
+    }
 
-		$fields = get_object_vars($this);
+    /**
+     * @return bool
+     */
+    private function getEntityChanged()
+    {
+        $result = false;
 
-		/**
-		 * @var Field $value
-		 */
-		foreach ($fields as $value) {
-			if ($value instanceof Field) {
-				if ($value->valueChanged) {
-					$result = true;
-				}
-			}
-		}
+        $fields = get_object_vars($this);
 
-		return $result;
-	}
+        /**
+         * @var Field $value
+         */
+        foreach ($fields as $value) {
+            if ($value instanceof Field) {
+                if ($value->valueChanged) {
+                    $result = true;
+                }
+            }
+        }
 
-	/**
-	 * @param bool $changed
-	 */
-	private function setEntityChanged($changed)
-	{
-		$result = false;
+        return $result;
+    }
 
-		$fields = get_object_vars($this);
+    /**
+     * @param bool $changed
+     */
+    private function setEntityChanged($changed)
+    {
+        $result = false;
 
-		/**
-		 * @var Field $value
-		 */
-		foreach ($fields as $value) {
-			if ($value instanceof Field) {
-				$value->valueChanged = $changed;
-			}
-		}
-	}
+        $fields = get_object_vars($this);
 
-
-	/**
-	 * Entity constructor.
-	 *
-	 * @param Dataface $db
-	 * @param string $tableName
-	 * @param string $idFieldName = "_id"
-	 * @param string $idFieldType
-	 * @param string $id = null
-	 * @param array $defaultFields
-	 */
-	public function __construct($db, $tableName, $idFieldName, $idFieldType, $id = null, $defaultFields = [])
-	{
-		$this->_id = new Field($idFieldName, $idFieldType);
-		$this->_id->value = $id;
-
-		$this->db = $db;
-		$this->tableName = $tableName;
-
-		if (($defaultFields != null) && (gettype($defaultFields) === "array") && (count($defaultFields) > 0)) {
-			$this->setFields($defaultFields);
-		}
-
-		$this->setEntityChanged(false);
-	}
+        /**
+         * @var Field $value
+         */
+        foreach ($fields as $value) {
+            if ($value instanceof Field) {
+                $value->valueChanged = $changed;
+            }
+        }
+    }
 
 
-	//NOTE Properties Getter/Setter
-	final public function __get($name)
-	{
-		switch ($name) {
-			case "id":
-				return $this->_id->value;
-				break;
+    /**
+     * Entity constructor.
+     *
+     * @param Dataface $db
+     * @param string $tableName
+     * @param string $idFieldName = "_id"
+     * @param string $idFieldType
+     * @param string $id = null
+     * @param array $defaultFields
+     */
+    public function __construct($db, $tableName, $idFieldName, $idFieldType, $id = null, $defaultFields = [])
+    {
+        $this->_id = new Field($idFieldName, $idFieldType);
+        $this->_id->value = $id;
 
-			case "tableName":
-				return $this->tableName;
-				break;
+        $this->db = $db;
+        $this->tableName = $tableName;
 
-			case "db":
-				return $this->db;
-				break;
-		}
+        if (($defaultFields != null) && (gettype($defaultFields) === "array") && (count($defaultFields) > 0)) {
+            $this->setFields($defaultFields);
+        }
 
-		return $this->getColumn($name);
-	}
-
-	final public function __set($name, $value)
-	{
-		$this->setColumn($name, $value);
-	}
+        $this->setEntityChanged(false);
+    }
 
 
-	//NOTE Public Functions
-	/**
-	 *
-	 */
-	final function update()
-	{
-		$found = (count($this->db->select($this->tableName, [$this->_id->name => $this->_id->value])) > 0);
+    //NOTE Properties Getter/Setter
+    final public function __get($name)
+    {
+        switch ($name) {
+            case "id":
+                return $this->_id->value;
+                break;
 
-		if ($found === true) {
-			if ($this->getEntityChanged() == true) {
-				$this->db->update($this->tableName, [$this->_id->name => $this->_id->value], $this->getFields(false, true));
-			}
-		} else {
-			$result = $this->db->insert($this->tableName, $this->getFields(($this->_id->value != null), true), false);
-			$this->_id->value = $result;
-		}
-	}
+            case "tableName":
+                return $this->tableName;
+                break;
 
-	/**
-	 *
-	 */
-	final function refresh()
-	{
-		if ($this->_id->value !== null) {
-			$result = $this->db->select($this->tableName, [$this->_id->name => $this->_id->value]);
+            case "db":
+                return $this->db;
+                break;
+        }
 
-			if (count($result) > 0) {
-				$this->setFields($result[0]);
-				$this->setEntityChanged(false);
-			}
-		}
-	}
+        return $this->getColumn($name);
+    }
 
-	/**
-	 * @param array $sort
-	 *
-	 * @return Entity[]
-	 */
-	final function search(array $sort = [])
-	{
-		$entityType = get_class($this);
-		$entities = [];
+    final public function __set($name, $value)
+    {
+        $this->setColumn($name, $value);
+    }
 
-		$result = $this->db->select($this->tableName, $this->getFields(), $sort);
 
-		foreach ($result as $record) {
-			$entities[] = new $entityType($this->db, $record[$this->_id->name], $record);
-		}
+    //NOTE Public Functions
 
-		return $entities;
-	}
+    /**
+     *
+     */
+    final function update()
+    {
+        $found = (count($this->db->select($this->tableName, [$this->_id->name => $this->_id->value])) > 0);
 
-	/**
-	 * @param array $fields
-	 * @param array $sort
-	 *
-	 * @return Entity[]
-	 */
-	final function searchDistinct(array $fields, array $sort = [])
-	{
-		$entityType = get_class($this);
-		$entities = [];
+        if ($found === true) {
+            if ($this->getEntityChanged() == true) {
+                $this->db->update($this->tableName, [$this->_id->name => $this->_id->value], $this->getFields(false, true));
+            }
+        } else {
+            $result = $this->db->insert($this->tableName, $this->getFields(($this->_id->value != null), true), false);
+            $this->_id->value = $result;
+        }
+    }
 
-		$result = $this->db->selectDistinct($this->tableName, $this->getFields(), $fields, $sort);
+    /**
+     *
+     */
+    final function refresh()
+    {
+        if ($this->_id->value !== null) {
+            $result = $this->db->select($this->tableName, [$this->_id->name => $this->_id->value]);
 
-		foreach ($result as $record) {
-			$entities[] = new $entityType($this->db, $record[$this->_id->name], $this->_id->name, $this->_id->type, $record);
-		}
+            if (count($result) > 0) {
+                $this->setFields($result[0]);
+                $this->setEntityChanged(false);
+            }
+        }
+    }
 
-		return $entities;
-	}
+    /**
+     * @param array $sort
+     *
+     * @return Entity[]
+     */
+    final function search(array $sort = [])
+    {
+        $entityType = get_class($this);
+        $entities = [];
 
-	/**
-	 *
-	 */
-	final function delete()
-	{
-		if ($this->_id->value !== null) {
-			$this->db->delete($this->tableName, [$this->_id->name => $this->_id->value]);
-			$this->_id->value = null;
-		}
-	}
+        $result = $this->db->select($this->tableName, $this->getFields(), $sort);
+
+        foreach ($result as $record) {
+            $entities[] = new $entityType($this->db, $record[$this->_id->name], $record);
+        }
+
+        return $entities;
+    }
+
+    /**
+     * @param array $fields
+     * @param array $sort
+     *
+     * @return Entity[]
+     */
+    final function searchDistinct(array $fields, array $sort = [])
+    {
+        $entityType = get_class($this);
+        $entities = [];
+
+        $result = $this->db->selectDistinct($this->tableName, $this->getFields(), $fields, $sort);
+
+        foreach ($result as $record) {
+            $entities[] = new $entityType($this->db, $record[$this->_id->name], $this->_id->name, $this->_id->type, $record);
+        }
+
+        return $entities;
+    }
+
+    /**
+     *
+     */
+    final function delete()
+    {
+        if ($this->_id->value !== null) {
+            $this->db->delete($this->tableName, [$this->_id->name => $this->_id->value]);
+            $this->_id->value = null;
+        }
+    }
 }

@@ -24,82 +24,85 @@ require_once realpath(dirname(__FILE__) . "/" . "Php7Mongo.php");
  */
 class Mongo extends \Dataface
 {
-	/**
-	 * @var Php5Mongo|Php7Mongo
-	 */
-	private $db;
+    /**
+     * @var Php5Mongo|Php7Mongo
+     */
+    private $db;
 
-	protected function reconnect()
-	{
-		$this->db->reconnect();
-	}
+    protected function reconnect()
+    {
+        $this->db->reconnect();
+    }
 
-	/**
-	 * @param int $phpVersion
-	 * Mongo constructor.
-	 * @param string $host
-	 * @param string $port
-	 * @param string $username
-	 * @param string $password
-	 * @param string $dbName
-	 */
-	public function __construct($phpVersion, $dbName, $host = "localhost", $port = "27017", $username = "", $password = "")
-	{
-		switch ($phpVersion) {
-			case 5:
-				$this->db = new Php5Mongo($dbName, $host, $port, $username, $password);
-				break;
+    /**
+     * @param int $phpVersion
+     * Mongo constructor.
+     * @param string $host
+     * @param string $port
+     * @param string $username
+     * @param string $password
+     * @param string $dbName
+     */
+    public function __construct($phpVersion, $dbName, $host = "localhost", $port = "27017", $username = "", $password = "")
+    {
+        switch ($phpVersion) {
+            case 5:
+                $this->db = new Php5Mongo($dbName, $host, $port, $username, $password);
+                break;
 
-			case 7:
-				$this->db = new Php7Mongo($dbName, $host, $port, $username, $password);
-				break;
-		}
-	}
+            case 7:
+                $this->db = new Php7Mongo($dbName, $host, $port, $username, $password);
+                break;
+        }
+    }
 
 
-	//NOTE Public Functions: Actions
-	/**
-	 * @param string $collection
-	 * @param array $fields
-	 *
-	 * @return string
-	 */
-	public function insert($collection, array $fields = [], $returnRow = false)
-	{
-		$id = $this->db->insert($collection, $fields);
+    //NOTE Public Functions: Actions
 
-		if ($returnRow === true) {
-			return $this->db->select($collection, ["_id" => $id]);
-		}
-	}
+    /**
+     * @param string $collection
+     * @param array $fields
+     *
+     * @return string
+     */
+    public function insert($collection, array $fields = [], $returnRow = false)
+    {
+        $id = $this->db->insert($collection, $fields);
 
-	public function select($collection, array $conditions = [], array $sort = [])
-	{
-		return $this->db->select($collection, $conditions, $sort);
-	}
+        if ($returnRow === true) {
+            return $this->db->select($collection, ["_id" => $id]);
+        } else {
+            return (string)$id;
+        }
+    }
 
-	public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [])
-	{
-		return $this->db->selectDistinct($collection, $conditions, $fields, $sort);
-	}
+    public function select($collection, array $conditions = [], array $sort = [])
+    {
+        return $this->db->select($collection, $conditions, $sort);
+    }
 
-	public function delete($collection, array $conditions = [])
-	{
-		return $this->db->delete($collection, $conditions);
-	}
+    public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [])
+    {
+        return $this->db->selectDistinct($collection, $conditions, $fields, $sort);
+    }
 
-	public function update($collection, array $conditions = [], array $fields = [])
-	{
-		return $this->db->update($collection, $conditions, $fields);
-	}
+    public function delete($collection, array $conditions = [])
+    {
+        return $this->db->delete($collection, $conditions);
+    }
 
-	public function count($collection)
-	{
-		return $this->db->count($collection);
-	}
+    public function update($collection, array $conditions = [], array $fields = [])
+    {
+        return $this->db->update($collection, $conditions, $fields);
+    }
 
-	public function query($collection, $command, $parameters)
-	{
-		return $this->db->query($collection, $command, $parameters);
-	}
+    public function count($collection)
+    {
+        return $this->db->count($collection);
+    }
+
+    public function query($collection, $command, $parameters)
+    {
+        return $this->db->query($collection, $command, $parameters);
+    }
 }
