@@ -81,19 +81,22 @@ abstract class Entity
     {
         $vars = get_object_vars($this);
         /** @var Field[] $vars_fields */
-        $vars_fields = [];
+//        $vars_fields = [];
 
         foreach ($vars as $field => $value) {
             if ($value instanceof Field) {
-                $vars_fields[$value->name] = $value;
+//                $vars_fields[$value->name] = $value;
+                if (isset($fields[$value->name])) {
+                    $value->value = $fields[$value->name];
+                }
             }
         }
 
-        foreach ($fields as $field => $value) {
+/*        foreach ($fields as $field => $value) {
             if (isset($vars_fields[$field])) {
                 $vars_fields[$field]->value = $value;
             }
-        }
+        }*/
     }
 
     /**
