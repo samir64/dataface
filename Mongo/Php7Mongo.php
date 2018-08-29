@@ -10,6 +10,8 @@
 namespace Dataface\Mongo;
 
 
+use MongoDB\Driver\Command;
+
 require_once realpath(dirname(__FILE__) . "/" . "../Dataface.php");
 
 
@@ -205,12 +207,22 @@ class Php7Mongo extends \Dataface
         return $result;
     }
 
-    public function count($collection)
+    public function count($collection, array $condition = [])
     {
-        $bulk = new \MongoDB\Driver\BulkWrite();
-        $result = $bulk->count();
+//        $bulk = new \MongoDB\Driver\BulkWrite();
+//        $result = $bulk->count();
 
-        return $result;
+        $params = ["count" => $collection];
+        if (count($condition) > 0) {
+            $params["query"] = $condition;
+        }
+        $command = new Command($params);
+
+        $cursor = $this->db->executeCommand($this->dbName, $command);
+
+        $result = $this->convertCursorToArray($cursor);
+
+        return $result[0]["n"];
     }
 
     public function query($collection, $command, $parameters)

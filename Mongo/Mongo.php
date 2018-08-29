@@ -96,9 +96,9 @@ class Mongo extends \Dataface
         return $this->db->update($collection, $conditions, $fields);
     }
 
-    public function count($collection)
+    public function count($collection, array $condition = [])
     {
-        return $this->db->count($collection);
+        return $this->db->count($collection, $condition);
     }
 
     public function query($collection, $command, $parameters)

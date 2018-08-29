@@ -20,6 +20,7 @@ require_once realpath(dirname(__FILE__) . "/" . "Field.php");
  * @package Dataface
  *
  * @property-read mixed $id
+ * @property-read string $tableName
  */
 abstract class Entity
 {
@@ -229,7 +230,31 @@ abstract class Entity
     }
 
     /**
+     * @param array $fields
      * @param array $sort
+     * @param int $offset
+     * @param int $limit
+     *
+     * @return Entity[]
+     */
+    final function searchDistinct(array $fields, array $sort = [], $offset = 0, $limit = -1)
+    {
+        $entityType = get_class($this);
+        $entities = [];
+
+        $result = $this->db->selectDistinct($this->tableName, $this->getFields(), $fields, $sort, $offset, $limit);
+
+        foreach ($result as $record) {
+            $entities[] = new $entityType($this->db, $record[$this->_id->name], $this->_id->name, $this->_id->type, $record);
+        }
+
+        return $entities;
+    }
+
+    /**
+     * @param array $sort
+     * @param int $offset
+     * @param int $limit
      *
      * @return Entity[]
      */
@@ -248,26 +273,6 @@ abstract class Entity
     }
 
     /**
-     * @param array $fields
-     * @param array $sort
-     *
-     * @return Entity[]
-     */
-    final function searchDistinct(array $fields, array $sort = [])
-    {
-        $entityType = get_class($this);
-        $entities = [];
-
-        $result = $this->db->selectDistinct($this->tableName, $this->getFields(), $fields, $sort);
-
-        foreach ($result as $record) {
-            $entities[] = new $entityType($this->db, $record[$this->_id->name], $this->_id->name, $this->_id->type, $record);
-        }
-
-        return $entities;
-    }
-
-    /**
      *
      */
     final function delete()
@@ -276,5 +281,12 @@ abstract class Entity
             $this->db->delete($this->tableName, [$this->_id->name => $this->_id->value]);
             $this->_id->value = null;
         }
+    }
+
+    final function count()
+    {
+        $result = $this->db->count($this->tableName, $this->getFields());
+
+        return $result;
     }
 }

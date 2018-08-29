@@ -70,13 +70,14 @@ class MySql extends \Dataface
     /**
      * @param string $table
      * @param array $conditions
+     * @param boolean $returnCount
      * @param array $sort
      * @param boolean $distinct
      * @param array $showfields
      *
-     * @return array
+     * @return string
      */
-    private function selectQuery($table, array $conditions, array $sort, $offset, $limit, $distinct, array $showfields)
+    private function selectQuery($table, array $conditions, $returnCount = false, $distinct = false, array $showfields = [], array $sort = [], $offset = 0, $limit = -1)
     {
         /** @var \mysql_result $result */
         $conditionString = "";
@@ -97,6 +98,10 @@ class MySql extends \Dataface
 
         if ($selectedFields == "") {
             $selectedFields = "*";
+        }
+
+        if ($returnCount) {
+            $selectedFields = "COUNT($selectedFields) AS cnt";
         }
 
         $query .= " $selectedFields FROM $table";
@@ -133,27 +138,32 @@ class MySql extends \Dataface
             }
         }
 
-        $query .= "$sortString;";
+        $query .= "$sortString";
 
 
-        $query .= " LIMIT ";
+        if (!$returnCount) {
+            $query .= " LIMIT ";
 
-        if ($limit < 0) {
-            $limit = 18446744073709551615;
+            if ($limit < 0) {
+                $limit = 18446744073709551615;
+            }
+
+            if ($offset > 0) {
+                $query .= "$offset, ";
+            }
+
+            $query .= "$limit";
         }
+        $query .= ";";
 
-        if ($offset > 0) {
-            $query .= "$offset, ";
-        }
+        return $query;
 
-        $query .= "$limit";
-
-        $result = $this->db->query($query);
-        if ($result) {
-            return $this->convertCursorToArray($result);
-        } else {
-            return [];
-        }
+        /*        $result = $this->db->query($query);
+                if ($result) {
+                    return $this->convertCursorToArray($result);
+                } else {
+                    return [];
+                }*/
     }
 
     //NOTE Constructor
@@ -307,7 +317,13 @@ class MySql extends \Dataface
      */
     public function select($table, array $conditions = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        return $this->selectQuery($table, $conditions, $sort, false, [], $offset, $limit);
+//        return $this->selectQuery($table, $conditions, $sort, false, [], $offset, $limit);
+        $result = $this->db->query($this->selectQuery($table, $conditions, false, false, [], $sort, $offset, $limit));
+        if ($result) {
+            return $this->convertCursorToArray($result);
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -320,7 +336,13 @@ class MySql extends \Dataface
      */
     public function selectDistinct($table, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        return $this->selectQuery($table, $conditions, $sort, true, $offset, $limit, $fields);
+//        return $this->selectQuery($table, $conditions, $sort, true, $offset, $limit, $fields);
+        $result = $this->db->query($this->selectQuery($table, $conditions, false, true, $fields, $sort, $offset, $limit));
+        if ($result) {
+            return $this->convertCursorToArray($result);
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -413,12 +435,23 @@ class MySql extends \Dataface
         return $result;
     }
 
-    public function count($table)
+    /**
+     * @param string $table
+     * @param array $query
+     *
+     * @return int
+     */
+    public function count($table, array $query = [])
     {
-        $query = "SELECT count(*) AS cnt FROM $table;";
-        $result = $this->db->query($query);
-        return (int)$result->fetch_array()["cnt"];
-        #return (int)$this->db->{$this->dbName}->{$table}->count();
+        $result = $this->db->query($this->selectQuery($table, $query, true));
+
+        if ($result) {
+            $result = $this->convertCursorToArray($result);
+
+            return (int)$result[0]["cnt"];
+        } else {
+            return 0;
+        }
     }
 
     public function query($query)
@@ -486,7 +519,7 @@ class MySql extends \Dataface
         }
         $query .= " $fieldsString);";
 
-        return $this->db->query($query);
+        $this->db->query($query);
     }
 
     /**

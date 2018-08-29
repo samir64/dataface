@@ -97,6 +97,6 @@ abstract class Dataface
 	public abstract function selectDistinct($table, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1);
 	public abstract function delete($table, array $conditions = []);
 	public abstract function update($table, array $conditions = [], array $fields = []);
-	public abstract function count($table);
+	public abstract function count($table, array $query = []);
 	protected abstract function reconnect();
 }
