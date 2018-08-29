@@ -126,11 +126,23 @@ class Php7Mongo extends \Dataface
      *
      * @return array
      */
-    public function select($collection, array $conditions = [], array $sort = [])
+    public function select($collection, array $conditions = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        $query = new \MongoDB\Driver\Query($conditions);
+        $options = [];
+        if (count($sort) > 0) {
+            $options["sort"] = $sort;
+        }
+        if ($offset > 0) {
+            $options["skip"] = $offset;
+        }
+        if ($limit >= 0) {
+            $options["limit"] = $limit;
+        }
 
-        return $this->convertCursorToArray($this->db->executeQuery($this->dbName . "." . $collection, $query));
+        $query = new \MongoDB\Driver\Query($conditions, $options);
+        $cursor = $this->db->executeQuery($this->dbName . "." . $collection, $query);
+
+        return $this->convertCursorToArray($cursor);
     }
 
     /**
@@ -141,11 +153,23 @@ class Php7Mongo extends \Dataface
      *
      * @return array
      */
-    public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [])
+    public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        $command = new \MongoDB\Driver\Command(["distinct" => $collection, "key" => $fields, "query" => $conditions]);
+        $options = ["distinct" => $collection, "key" => $fields, "query" => $conditions];
+        if (count($sort) > 0) {
+            $options["sort"] = $sort;
+        }
+        if ($offset > 0) {
+            $options["skip"] = $offset;
+        }
+        if ($limit >= 0) {
+            $options["limit"] = $limit;
+        }
 
-        return $this->convertCursorToArray($this->db->executeCommand($this->dbName, $command));
+        $command = new \MongoDB\Driver\Command($options);
+        $cursor = $this->convertCursorToArray($this->db->executeCommand($this->dbName, $command));
+
+        return $this->convertCursorToArray($cursor);
     }
 
     /**

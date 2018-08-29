@@ -63,7 +63,7 @@ class Mongo extends \Dataface
      * @param string $collection
      * @param array $fields
      *
-     * @return string
+     * @return string|array
      */
     public function insert($collection, array $fields = [], $returnRow = false)
     {
@@ -76,14 +76,14 @@ class Mongo extends \Dataface
         }
     }
 
-    public function select($collection, array $conditions = [], array $sort = [])
+    public function select($collection, array $conditions = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        return $this->db->select($collection, $conditions, $sort);
+        return $this->db->select($collection, $conditions, $sort, $offset, $limit);
     }
 
-    public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [])
+    public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1)
     {
-        return $this->db->selectDistinct($collection, $conditions, $fields, $sort);
+        return $this->db->selectDistinct($collection, $conditions, $fields, $sort, $offset, $limit);
     }
 
     public function delete($collection, array $conditions = [])

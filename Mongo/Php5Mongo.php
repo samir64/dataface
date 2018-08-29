@@ -121,14 +121,20 @@ class Php5Mongo extends \Dataface
 	 * 
 	 * @return array
 	 */
-	public function select($collection, array $conditions = [], array $sort = [])
+	public function select($collection, array $conditions = [], array $sort = [], $offset = 0, $limit = -1)
 	{
 		/** @var \MongoCursor $result */
 		$result = $this->db->{$this->dbName}->{$collection}->find($conditions);
+        if (is_array($sort) && (count($sort) > 0)) {
+            $result = $result->sort($sort);
+        }
 
-		if (is_array($sort) && (count($sort) > 0)) {
-			$result = $result->sort($sort);
-		}
+		if ($offset > 0) {
+		    $result = $result.skip($offset);
+        }
+        if ($limit >= 0) {
+            $result = $result.limit($limit);
+        }
 
 		return $this->convertCursorToArray($result);
 	}
@@ -141,7 +147,7 @@ class Php5Mongo extends \Dataface
 	 * 
 	 * @return array
 	 */
-	public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [])
+	public function selectDistinct($collection, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1)
 	{
 		/** @var \MongoCursor $result */
 		$result = $this->db->{$this->dbName}->{$collection}->distinct($fields, $conditions);
@@ -149,6 +155,12 @@ class Php5Mongo extends \Dataface
 		if (is_array($sort) && (count($sort) > 0)) {
 			$result = $result->sort($sort);
 		}
+        if ($offset > 0) {
+            $result = $result.skip($offset);
+        }
+        if ($limit >= 0) {
+            $result = $result.limit($limit);
+        }
 
 		return $this->convertCursorToArray($result);
 	}

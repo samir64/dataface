@@ -93,8 +93,8 @@ abstract class Dataface
 
 	//NOTE Public Functions: Actions
 	public abstract function insert($table, array $fields = [], $returnRow = false);
-	public abstract function select($table, array $conditions = [], array $sort = []);
-	public abstract function selectDistinct($table, array $conditions = [], array $fields = [], array $sort = []);
+	public abstract function select($table, array $conditions = [], array $sort = [], $offset = 0, $limit = -1);
+	public abstract function selectDistinct($table, array $conditions = [], array $fields = [], array $sort = [], $offset = 0, $limit = -1);
 	public abstract function delete($table, array $conditions = []);
 	public abstract function update($table, array $conditions = [], array $fields = []);
 	public abstract function count($table);

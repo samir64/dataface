@@ -233,12 +233,12 @@ abstract class Entity
      *
      * @return Entity[]
      */
-    final function search(array $sort = [])
+    final function search(array $sort = [], $offset = 0, $limit = -1)
     {
         $entityType = get_class($this);
         $entities = [];
 
-        $result = $this->db->select($this->tableName, $this->getFields(), $sort);
+        $result = $this->db->select($this->tableName, $this->getFields(), $sort, $offset, $limit);
 
         foreach ($result as $record) {
             $entities[] = new $entityType($this->db, $record[$this->_id->name], $record);
