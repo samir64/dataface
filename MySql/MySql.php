@@ -122,11 +122,14 @@ class MySql extends \Dataface
         if (count($sort) > 0) {
             $query .= " ORDER BY ";
 
-            foreach ($sort as $field) {
+            foreach ($sort as $field => $type) {
                 if ($sortString != "") {
                     $sortString .= ", ";
                 }
                 $sortString .= "$field";
+                if ($type === -1) {
+                    $sortString .= "DESC";
+                }
             }
         }
 
