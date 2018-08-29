@@ -243,4 +243,5 @@ function search(array $sort = []); // search data matched by entity fields (exce
 function searchDistinct(array $fields, array $sort = []);
 function update(); // If entity's id has value and is exists in database, edit row with that id by entity fields, else if entity is not exists in database, insert new record by entity data
 function delete();
+function count(); // Returns entities like as this entity values
 ```
