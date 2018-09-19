@@ -217,7 +217,7 @@ abstract class Entity
     /**
      *
      */
-    final function refresh()
+    final function reload()
     {
         if ($this->_id->value !== null) {
             $result = $this->db->select($this->tableName, [$this->_id->name => $this->_id->value]);
